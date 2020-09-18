@@ -43,7 +43,7 @@ namespace ProblemsApi.Controllers
         }
         [Route("/todo/{id}")]
         [HttpPut]
-        public IActionResult UpadteTodo(id)
+        public IActionResult UpadteTodo(int id)
         {
             return Ok();
         }
