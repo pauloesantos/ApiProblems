@@ -6,77 +6,71 @@ namespace ProblemsApi.Helpers
         {
             private readonly string _value;
 
-            public readonly bool EhValido;
-            static readonly int[] Multiplicador1 = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
-            static readonly int[] Multiplicador2 = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
-
             public Cnpj(string value)
             {
                 _value = value;
+            }
 
-                if (value == null)
+            public int CalculaNumeroDeDigitos()
+            {
+                if (_value == null)
                 {
-                    EhValido = false;
-                    return;
+                    return 0;
                 }
 
-                var digitosIdenticos = true;
-                var ultimoDigito = -1;
-                var posicao = 0;
-                var totalDigito1 = 0;
-                var totalDigito2 = 0;
-
-                foreach (var c in _value)
+                var result = 0;
+                for (var i = 0; i < _value.Length; i++)
                 {
-                    if (char.IsDigit(c))
+                    if (char.IsDigit(_value[i]))
                     {
-                        var digito = c - '0';
-                        if (posicao != 0 && ultimoDigito != digito)
-                        {
-                            digitosIdenticos = false;
-                        }
-
-                        ultimoDigito = digito;
-                        if (posicao < 12)
-                        {
-                            totalDigito1 += digito * Multiplicador1[posicao];
-                            totalDigito2 += digito * Multiplicador2[posicao];
-                        }
-                        else if (posicao == 12)
-                        {
-                            var dv1 = (totalDigito1 % 11);
-                            dv1 = dv1 < 2
-                                ? 0
-                                : 11 - dv1;
-
-                            if (digito != dv1)
-                            {
-                                EhValido = false;
-                                return;
-                            }
-
-                            totalDigito2 += dv1 * Multiplicador2[12];
-                        }
-                        else if (posicao == 13)
-                        {
-                            var dv2 = (totalDigito2 % 11);
-
-                            dv2 = dv2 < 2
-                                ? 0
-                                : 11 - dv2;
-
-                            if (digito != dv2)
-                            {
-                                EhValido = false;
-                                return;
-                            }
-                        }
-
-                        posicao++;
+                        result++;
                     }
                 }
 
-                EhValido = (posicao == 14) && !digitosIdenticos;
+                return result;
+            }
+
+
+            public bool VerficarSeTodosOsDigitosSaoIdenticos()
+            {
+                var previous = -1;
+                for (var i = 0; i < _value.Length; i++)
+                {
+                    if (char.IsDigit(_value[i]))
+                    {
+                        var digito = _value[i] - '0';
+                        if (previous == -1)
+                        {
+                            previous = digito;
+                        }
+                        else
+                        {
+                            if (previous != digito)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+
+            public int ObterDigito(int posicao)
+            {
+                int count = 0;
+                for (int i = 0; i < _value.Length; i++)
+                {
+                    if (char.IsDigit(_value[i]))
+                    {
+                        if (count == posicao)
+                        {
+                            return _value[i] - '0';
+                        }
+                        count++;
+                    }
+                }
+
+                return 0;
             }
 
             public static implicit operator Cnpj(string value)
@@ -86,7 +80,50 @@ namespace ProblemsApi.Helpers
                 => _value;
         }
 
+        static readonly int[] multiplicador1 = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+        static readonly int[] multiplicador2 = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+
         public static bool ValidarCNPJ(Cnpj cnpj)
-            => cnpj.EhValido;
+        {
+            if (cnpj.CalculaNumeroDeDigitos() != 14)
+                return false;
+
+            // Verifica os Patterns mais Comuns para CNPJ's Inválidos
+            if (cnpj.VerficarSeTodosOsDigitosSaoIdenticos())
+            {
+                return false;
+            }
+
+            var soma1 = 0;
+            var soma2 = 0;
+            for (var i = 0; i < 12; i++)
+            {
+                var d = cnpj.ObterDigito(i);
+                soma1 += d * multiplicador1[i];
+                soma2 += d * multiplicador2[i];
+            }
+
+            var resto = (soma1 % 11);
+
+            if (resto < 2)
+                resto = 0;
+            else
+                resto = 11 - resto;
+
+            var dv1 = resto;
+            //var digito = resto.ToString();
+            soma2 += resto * multiplicador2[12];
+
+            resto = (soma2 % 11);
+
+            if (resto < 2)
+                resto = 0;
+            else
+                resto = 11 - resto;
+
+            var dv2 = resto;
+
+            return cnpj.ObterDigito(12) == dv1 && cnpj.ObterDigito(13) == dv2;
+        }
     }
 }

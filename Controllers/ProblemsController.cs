@@ -21,23 +21,38 @@ namespace ProblemsApi.Controllers
         [HttpGet]
         public IActionResult CnpjValidate(string cnpj)
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
-            //ValidatedCnpj.ValidarCNPJ(cnpj);
-            return Ok(ValidatedCnpj.ValidarCNPJ(cnpj));
+            if (ValidatedCnpj.ValidarCNPJ(cnpj))
+            {
+                return Ok("Valid!");
+            }
+            else
+            {
+                return BadRequest("Invalid!");
+            }
         }
         [Route("cnpjdigitvalidate/{cnpj}")]
         [HttpGet]
-        public IActionResult CnpjDigitValidate(string cnpj)
+        public IActionResult CnpjDigitValidate(QueryCnpj cnpj)
         {
             Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok(cnpj);
         }
-        [Route("isintersects")]
+
         [HttpPost]
-        public IActionResult IsRectanglesIntersects()
+        [Route("isintersects")]
+        public IActionResult IsRectanglesIntersects([FromBody] Rectangles Rect)
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
-            return Ok();
+            int x = Intersection.CountIntersect(Rect);
+            if (x > 0)
+            // if (Rect.RectA.X1 <= Rect.RectB.X2 && Rect.RectB.X1 <= Rect.RectA.X2 &&
+            //  Rect.RectA.Y1 <= Rect.RectB.Y2 && Rect.RectB.Y1 <= Rect.RectA.Y2)
+            {
+                return Ok("True");
+            }
+            else
+            {
+                return BadRequest("False");
+            }
         }
         [Route("whichintersection")]
         [HttpPost]
