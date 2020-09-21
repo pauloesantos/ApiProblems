@@ -14,13 +14,27 @@ namespace ProblemsApi.Controllers
         [Route("")]
         public string MeuMetodo()
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
-            return "Olá mundo";
+            return "Olá mundo!";
         }
         [Route("cnpjvalidate/{cnpj}")]
         [HttpGet]
         public IActionResult CnpjValidate(string cnpj)
         {
+            cnpj = cnpj.Replace(".", "").Replace("-", "").Replace("/", "").Replace("%2F", "");
+            if (ValidatedCnpj.ValidarCNPJ(cnpj))
+            {
+                return Ok("Valid!");
+            }
+            else
+            {
+                return BadRequest("Invalid!");
+            }
+        }
+        [Route("cnpjvalidatepost")]
+        [HttpPost]
+        public IActionResult CnpjValidatePost([FromBody] string cnpj)
+        {
+            //cnpj = cnpj.Replace(".", "").Replace("-", "").Replace("/", "").Replace("%2F", "");
             if (ValidatedCnpj.ValidarCNPJ(cnpj))
             {
                 return Ok("Valid!");
@@ -42,10 +56,9 @@ namespace ProblemsApi.Controllers
         [Route("isintersects")]
         public IActionResult IsRectanglesIntersects([FromBody] Rectangles Rect)
         {
-            int x = Intersection.CountIntersect(Rect);
-            if (x > 0)
-            // if (Rect.RectA.X1 <= Rect.RectB.X2 && Rect.RectB.X1 <= Rect.RectA.X2 &&
-            //  Rect.RectA.Y1 <= Rect.RectB.Y2 && Rect.RectB.Y1 <= Rect.RectA.Y2)
+
+            if (Rect.RectA.L.X <= Rect.RectB.R.X && Rect.RectB.L.X <= Rect.RectA.R.X &&
+            Rect.RectA.L.Y <= Rect.RectB.R.Y && Rect.RectB.L.Y <= Rect.RectA.R.Y)
             {
                 return Ok("True");
             }
@@ -56,58 +69,52 @@ namespace ProblemsApi.Controllers
         }
         [Route("whichintersection")]
         [HttpPost]
-        public IActionResult IsintersectionRectangles()
+        public IActionResult IsintersectionRectangles([FromBody] Rectangles Rect)
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
+            int x = Intersection.CountIntersect(Rect);
             return Ok();
+
         }
         [Route("todo/{task}")]
         [HttpPost]
         public IActionResult AddTodo(string task)
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok(task);
         }
         [Route("todo")]
         [HttpGet]
         public IActionResult GetListTodo()
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok();
         }
         [Route("todo/{id}")]
         [HttpPut]
         public IActionResult UpadteTodo(int id)
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok();
         }
         [Route("todo/{id}")]
         [HttpDelete]
         public IActionResult DeleteTodo(int id)
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok();
         }
         [Route("worldclock")]
         [HttpGet]
         public IActionResult GetWorldClock()
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok();
         }
         [Route("simpleordermanager")]
         [HttpGet]
         public IActionResult GeSimpleOrderManager()
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok();
         }
         [Route("uxprototype")]
         [HttpGet]
         public IActionResult GetUxPrototype()
         {
-            Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok();
         }
 
