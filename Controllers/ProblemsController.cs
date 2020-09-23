@@ -17,7 +17,7 @@ namespace ProblemsApi.Controllers
     [Route("api/problems")]
     public class ProblemsController : ControllerBase
     {
-        #region Injectio dependency BD
+        #region Injection dependency BD
         private readonly TodoContext _todoDbContext;
 
         public ProblemsController(TodoContext todoDbContext)
