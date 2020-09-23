@@ -25,7 +25,6 @@ namespace ProblemsApi.Helpers
             int y2 = Math.Max(rectA.L.Y, rectB.L.Y);
             int areaFinal = Math.Abs(x1 - x2) * Math.Abs(y1 - y2);
 
-
             return (areaRectA + areaRectB - areaI);
         }
 

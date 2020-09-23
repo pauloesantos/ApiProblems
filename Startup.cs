@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,20 +33,24 @@ namespace ProblemsApi
             services.AddDbContext<TodoContext>(opt =>
                opt.UseInMemoryDatabase("TodoList"));
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
+            services.AddSwaggerGen(c => {
+
                 c.SwaggerDoc("v1",
                     new OpenApiInfo
                     {
                         Title = "Problems API",
                         Version = "v1",
-                        Description = "Resolução de Problemas",
+                        Description = "API REST criada com o ASP.NET Core 3.1 para Resolução de Problems propostos pela Kaffa.",
                         Contact = new OpenApiContact
                         {
-                            Name = "Paulo Eduardo Fagundes dos Santos",
+                            Name = "Paulo Eduardo Fagundes",
                             Url = new Uri("https://github.com/pauloesantos")
                         }
                     });
+                    // Set the comments path for the Swagger JSON and UI.
+                    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    c.IncludeXmlComments(xmlPath);
             });
         }
 
@@ -56,13 +61,18 @@ namespace ProblemsApi
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json",
-                    "Resolução de Problemas");
-                c.RoutePrefix = string.Empty;
+                c.SerializeAsV2 = true;
             });
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwaggerUI(c =>
+                    {
+                        c.SwaggerEndpoint("/swagger/v1/swagger.json",
+                            "Resolução de Problemas");
+                        c.RoutePrefix = string.Empty;
+                    });
 
             app.UseHttpsRedirection();
 

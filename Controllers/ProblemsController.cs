@@ -1,6 +1,12 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using ProblemsApi.Helpers;
+using ApiProblems.Models;
+using System.Threading.Tasks;
+using ProblemsApi.Data;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace ProblemsApi.Controllers
 {
@@ -11,11 +17,31 @@ namespace ProblemsApi.Controllers
     [Route("api/problems")]
     public class ProblemsController : ControllerBase
     {
+        #region Injectio dependency BD
+        private readonly TodoContext _todoDbContext;
+
+        public ProblemsController(TodoContext todoDbContext)
+        {
+            _todoDbContext = todoDbContext;
+        }
+        #endregion
+
+        ///
+        /// hello word api get
+        ///
         [Route("")]
+        [HttpGet]
         public string MeuMetodo()
         {
             return "Olá mundo!";
         }
+
+        #region CNPJ Validate
+
+        ///
+        /// CNPJ Validate via Get
+        /// Replace value "/" for "%2F"
+        ///
         [Route("cnpjvalidate/{cnpj}")]
         [HttpGet]
         public IActionResult CnpjValidate(string cnpj)
@@ -30,6 +56,10 @@ namespace ProblemsApi.Controllers
                 return BadRequest("Invalid!");
             }
         }
+
+        ///
+        /// Cnpj Validade Via Post
+        ///
         [Route("cnpjvalidatepost")]
         [HttpPost]
         public IActionResult CnpjValidatePost([FromBody] string cnpj)
@@ -44,6 +74,10 @@ namespace ProblemsApi.Controllers
                 return BadRequest("Invalid!");
             }
         }
+        ///
+        /// Validate digits CNPj
+        /// Not Work
+        ///
         [Route("cnpjdigitvalidate/{cnpj}")]
         [HttpGet]
         public IActionResult CnpjDigitValidate(QueryCnpj cnpj)
@@ -51,6 +85,7 @@ namespace ProblemsApi.Controllers
             Console.WriteLine(ControllerContext.ActionDescriptor.AttributeRouteInfo.Name);
             return Ok(cnpj);
         }
+        #endregion
 
         [HttpPost]
         [Route("isintersects")]
@@ -75,30 +110,105 @@ namespace ProblemsApi.Controllers
             return Ok();
 
         }
-        [Route("todo/{task}")]
+
+        #region TodoItem
+
+        [Route("todoitems")]
         [HttpPost]
-        public IActionResult AddTodo(string task)
+        public async Task<ActionResult<TodoItem>> AddTodo(TodoItem todoItem)
         {
-            return Ok(task);
+            var itemTodo = new TodoItem
+            {
+                IsComplete = todoItem.IsComplete,
+                Name = todoItem.Name
+            };
+            _todoDbContext.TodoItems.Add(itemTodo);
+
+            await _todoDbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(AddTodo), new { id = itemTodo.Id }, ItemTo(itemTodo));
         }
-        [Route("todo")]
+
+        [Route("todoitems")]
         [HttpGet]
-        public IActionResult GetListTodo()
+        public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
         {
-            return Ok();
+            return await _todoDbContext.TodoItems
+            .Select(x => ItemTo(x))
+            .ToListAsync();
         }
-        [Route("todo/{id}")]
+
+        [Route("todoitems/{id}")]
+        [HttpGet]
+        public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
+        {
+            var todoItem = await _todoDbContext.TodoItems.FindAsync(id);
+
+            if (todoItem == null)
+            {
+                return NotFound();
+            }
+
+            return todoItem;
+        }
+
+        [Route("todoitems/{id}")]
         [HttpPut]
-        public IActionResult UpadteTodo(int id)
+        public async Task<IActionResult> UpdateTodoItem(long id, TodoItem todoItem)
         {
-            return Ok();
+            if (id != todoItem.Id)
+            {
+                return BadRequest();
+            }
+
+            var itemTodo = await _todoDbContext.TodoItems.FindAsync(id);
+            if (itemTodo == null)
+            {
+                return NotFound();
+            }
+
+            itemTodo.Name = todoItem.Name;
+            itemTodo.IsComplete = todoItem.IsComplete;
+
+            try
+            {
+                await _todoDbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException) when (!TodoItemExists(id))
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
-        [Route("todo/{id}")]
+
+        [Route("todoitems/{id}")]
         [HttpDelete]
-        public IActionResult DeleteTodo(int id)
+        public async Task<ActionResult<TodoItem>> DeleteTodoItem(long id)
         {
-            return Ok();
+            var todoItem = await _todoDbContext.TodoItems.FindAsync(id);
+            if (todoItem == null)
+            {
+                return NotFound();
+            }
+
+            _todoDbContext.TodoItems.Remove(todoItem);
+            await _todoDbContext.SaveChangesAsync();
+
+            return todoItem;
         }
+
+        private bool TodoItemExists(long id) =>
+                 _todoDbContext.TodoItems.Any(e => e.Id == id);
+        private static TodoItem ItemTo(TodoItem todoItem) =>
+            new TodoItem
+            {
+                Id = todoItem.Id,
+                Name = todoItem.Name,
+                IsComplete = todoItem.IsComplete
+            };
+        #endregion
+
         [Route("worldclock")]
         [HttpGet]
         public IActionResult GetWorldClock()
